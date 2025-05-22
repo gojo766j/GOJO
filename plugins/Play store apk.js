@@ -1,3 +1,4 @@
+const { cmd } = require("../command"); // <- මෙන්න මේක ඇතුලත් කරන්න
 const axios = require("axios");
 
 cmd({
@@ -8,7 +9,7 @@ cmd({
   filename: __filename
 }, async (conn, m, store, { from, q, reply }) => {
   try {
-    if (!q) return reply("❌ App එකේ නමක් එවන්න (`.apk <app name>`)");
+    if (!q) return reply("❌ App එකේ නමක් එවන්න (`.app <app name>`)");
 
     await conn.sendMessage(from, { react: { text: "⏳", key: m.key } });
 
