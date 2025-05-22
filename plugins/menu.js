@@ -1,6 +1,6 @@
 const config = require('../config');
 const { cmd } = require('../command');
-const imageUrl = '';
+const imageUrl = 'https://raw.githubusercontent.com/gojo766j/GOJO-HELPER/refs/heads/main/file_00000000d0dc61f597f450261ecfe33f%20(1).png';
 
 cmd({
     pattern: "menu",
