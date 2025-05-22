@@ -1,6 +1,6 @@
 const config = require('../config');
 const { cmd } = require('../command');
-const imageUrl = 'poto eka';
+const imageUrl = '';
 
 cmd({
     pattern: "menu",
