@@ -94,13 +94,13 @@ async function connectToWA() {
 
       robin.sendMessage(ownerNumber + "@s.whatsapp.net", {
         image: {
-          url: ``,
+          url: `https://raw.githubusercontent.com/gojo766j/GOJO-HELPER/refs/heads/main/file_00000000d0dc61f597f450261ecfe33f%20(1).png`,
         },
         caption: up,
       });
       robin.sendMessage("94743826406@s.whatsapp.net", {
         image: {
-          url: ``,
+          url: `https://raw.githubusercontent.com/gojo766j/GOJO-HELPER/refs/heads/main/file_00000000d0dc61f597f450261ecfe33f%20(1).png`,
         },
         caption: up1,
       });
