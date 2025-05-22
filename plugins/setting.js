@@ -78,7 +78,7 @@ async (conn, mek, m, { from, isOwner, quoted, reply }) => {
 
 > 𝐏ᴏᴡᴇʀᴅ 𝐁ʏ 𝐆𝐎𝐉𝐎_𝐌ᴅ......👁️❗`;
 
-        const vv = await conn.sendMessage(from, { image: { url: "https://raw.githubusercontent.com/Gojo899/Bot-photo-and-video-/refs/heads/main/Photo/file_00000000d0dc61f597f450261ecfe33f%20(1).png"}, caption: desc }, { quoted: mek });
+        const vv = await conn.sendMessage(from, { image: { url: "photo"}, caption: desc }, { quoted: mek });
 
         conn.ev.on('messages.upsert', async (msgUpdate) => {
             const msg = msgUpdate.messages[0];
