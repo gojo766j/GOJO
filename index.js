@@ -94,13 +94,13 @@ async function connectToWA() {
 
       robin.sendMessage(ownerNumber + "@s.whatsapp.net", {
         image: {
-          url: `photo`,
+          url: ``,
         },
         caption: up,
       });
       robin.sendMessage("94743826406@s.whatsapp.net", {
         image: {
-          url: `photo`,
+          url: ``,
         },
         caption: up1,
       });
