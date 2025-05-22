@@ -1,48 +1,45 @@
-const { cmd } = require("../command"); // <- මෙන්න මේක ඇතුලත් කරන්න
+const { cmd } = require("../command");
 const axios = require("axios");
 
 cmd({
-  pattern: "app",
+  pattern: "apk",
   react: "📦",
-  desc: "Download APK from Aptoide using app name.",
+  desc: "Download APK by app name",
   category: "download",
-  filename: __filename
+  filename: __filename,
 }, async (conn, m, store, { from, q, reply }) => {
   try {
-    if (!q) return reply("❌ App එකේ නමක් එවන්න (`.app <app name>`)");
+    if (!q) return reply("❌ App එකේ නමක් එවන්න (`.apk <app name>`)");
 
     await conn.sendMessage(from, { react: { text: "⏳", key: m.key } });
 
-    const apiUrl = `http://ws75.aptoide.com/api/7/apps/search/query=${encodeURIComponent(q)}/limit=1`;
-    const response = await axios.get(apiUrl);
-    const data = response.data;
+    const searchUrl = `https://ws75.aptoide.com/api/7/apps/search/?q=${encodeURIComponent(q)}&limit=1`;
 
-    if (!data?.datalist?.list?.length) {
-      return reply("⚠️ App එකක් හමු නොවීය.");
+    const searchRes = await axios.get(searchUrl);
+    const appData = searchRes.data?.datalist?.list?.[0];
+
+    if (!appData) {
+      return reply("⚠️ App එකක් හමු නොවීය. වෙනත් නමක් try කරන්න.");
     }
 
-    const app = data.datalist.list[0];
-    const downloadLink = app.file?.path_alt;
+    const downloadUrl = appData?.file?.path_alt;
+    if (!downloadUrl) return reply("❌ Download link එකක් හමු නොවුණා.");
 
-    if (!downloadLink) {
-      return reply("❌ මේ app එකට download link එකක් නොමැත.");
-    }
-
-    const appSizeMB = app.size ? (app.size / 1048576).toFixed(2) : "Unknown";
+    const appSize = (appData.size / 1024 / 1024).toFixed(2); // MB
 
     const caption = `*「 APK Downloader 」*
-    
-🏷️ *Name:* ${app.name}
-📦 *Package:* ${app.package}
-📏 *Size:* ${appSizeMB} MB
-📆 *Updated:* ${app.updated}
-👨‍💻 *Developer:* ${app.developer?.name || "Unknown"}
 
-✅ Download එක සාර්ථකයි!`;
+🏷️ *Name:* ${appData.name}
+📦 *Package:* ${appData.package}
+📏 *Size:* ${appSize} MB
+📆 *Updated:* ${appData.added}
+👨‍💻 *Developer:* ${appData.developer?.name || "Unknown"}
+
+✅ *Download link available!*`;
 
     await conn.sendMessage(from, {
-      document: { url: downloadLink },
-      fileName: `${app.name}.apk`,
+      document: { url: downloadUrl },
+      fileName: `${appData.name}.apk`,
       mimetype: "application/vnd.android.package-archive",
       caption
     }, { quoted: m });
@@ -50,7 +47,7 @@ cmd({
     await conn.sendMessage(from, { react: { text: "✅", key: m.key } });
 
   } catch (err) {
-    console.error("APK Error:", err);
+    console.error(err);
     reply("❌ App එක ලබා ගැනීමේදී දෝෂයක් ඇතිවිය.");
   }
 });
