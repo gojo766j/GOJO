@@ -4,7 +4,7 @@ module.exports = {
   desc: "Search Sinhala Sub Movies",
   react: "🎬",
   category: "movie",
-  use: ".mv<movie name>",
+  use: ".mv <movie name>",
 
   async function(robin, m, { args, reply }) {
     if (!args[0]) return reply("Movie name එකක් දෙන්න. උදා: `.movie Interstellar`");
