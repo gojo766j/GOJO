@@ -1,6 +1,6 @@
 const config = require('../config');
 const { cmd } = require('../command');
-const imageUrl = 'https://raw.githubusercontent.com/Gojo899/Bot-photo-and-video-/refs/heads/main/Photo/file_00000000d0dc61f597f450261ecfe33f%20(1).png';
+const imageUrl = 'poto eka';
 
 cmd({
     pattern: "menu",
