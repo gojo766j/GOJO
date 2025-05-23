@@ -1,22 +1,30 @@
-// File: plugins/movie.js const { getMovies } = require("../scraper");
+const { cmd } = require('../command');
+const { getMovieByName } = require('./scraper');
 
-module.exports = { pattern: "movie", alias: ["film", "movies"], desc: "Get SinhalaSub.lk movies", category: "media", react: "\uD83C\uDFAC", use: '.movie <search term>', filename: __filename,
+cmd({
+    pattern: "movie",
+    alias: ["moviedl", "films"],
+    react: '🎬',
+    category: "search",
+    desc: "Search movies from SinhalaSub.lk",
+    filename: __filename
+}, async (robin, m, mek, { from, q, reply }) => {
+    try {
+        if (!q || q.trim() === '') return await reply('❌ කරුණාකර චිත්‍රපටයක් නම් කරන්න! (උදා: avengers)');
 
-function: async ( sock, m, { args, q, from, reply } ) => { if (!q) return reply("Please provide a movie name. Eg: .movie John Wick");
+        const movies = await getMovieByName(q);
 
-const movies = await getMovies();
-const filtered = movies.filter(movie =>
-  movie.title.toLowerCase().includes(q.toLowerCase())
-);
+        if (!movies.length) {
+            return await reply(`❌ *${q}* සඳහා චිත්‍රපට සොයාගත නොහැකි විය.`);
+        }
 
-if (filtered.length === 0) return reply("No results found.");
+        // Response message (up to 5 results)
+        const replyText = movies.slice(0, 5).map(m => `🎬 ${m.title}\n🔗 ${m.link}`).join('\n\n');
 
-let text = "*Found Movies:*\n\n";
-filtered.forEach((movie, i) => {
-  text += `${i + 1}. *${movie.title}*\nQuality: ${movie.quality || "Unknown"}\nLink: ${movie.link}\n\n`;
+        await reply(replyText);
+
+    } catch (error) {
+        console.error('Error in movie command:', error);
+        await reply('❌ සමාවෙන්න, දෝෂයක් සිදුවී ඇත. නැවත උත්සාහ කරන්න.');
+    }
 });
-
-return reply(text.trim());
-
-}, };
-
