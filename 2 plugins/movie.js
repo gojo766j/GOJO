@@ -1,5 +1,30 @@
+const axios = require('axios');
+const cheerio = require('cheerio');
 const { cmd } = require('../command');
-const { getMovieByName } = require('./scraper');
+
+async function getMovieByName(name) {
+    try {
+        const searchUrl = `https://sinhalasub.lk/?s=${encodeURIComponent(name)}`;
+        const { data } = await axios.get(searchUrl);
+        const $ = cheerio.load(data);
+
+        const movies = [];
+
+        $('.jeg_postblock').each((i, elem) => {
+            const title = $(elem).find('.jeg_post_title a').text().trim();
+            const link = $(elem).find('.jeg_post_title a').attr('href');
+
+            if (title && link) {
+                movies.push({ title, link });
+            }
+        });
+
+        return movies;
+    } catch (error) {
+        console.error('Error in getMovieByName:', error);
+        return [];
+    }
+}
 
 cmd({
     pattern: "movie",
@@ -16,7 +41,7 @@ cmd({
 
         const movies = await getMovieByName(q);
 
-        if (!movies || !movies.length) {
+        if (!movies || movies.length === 0) {
             return await reply(`❌ *${q}* සඳහා චිත්‍රපට හමු නොවීය.`);
         }
 
