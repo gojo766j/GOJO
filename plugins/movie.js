@@ -10,20 +10,24 @@ cmd({
     filename: __filename
 }, async (robin, m, mek, { from, q, reply }) => {
     try {
-        if (!q || q.trim() === '') return await reply('❌ කරුණාකර චිත්‍රපටයක් නම් කරන්න! (උදා: avengers)');
+        if (!q || q.trim() === '') {
+            return await reply('❌ කරුණාකර චිත්‍රපටයක නමක් ලබා දෙන්න! (උදා: avengers)');
+        }
 
         const movies = await getMovieByName(q);
 
-        if (!movies.length) {
-            return await reply(`❌ *${q}* සඳහා චිත්‍රපට සොයාගත නොහැකි විය.`);
+        if (!movies || !movies.length) {
+            return await reply(`❌ *${q}* සඳහා චිත්‍රපට හමු නොවීය.`);
         }
 
-        const replyText = movies.slice(0, 5).map(m => `🎬 ${m.title}\n🔗 ${m.link}`).join('\n\n');
+        const replyText = movies.slice(0, 5).map(movie => (
+            `🎬 *${movie.title}*\n🔗 ${movie.link}`
+        )).join('\n\n');
 
         await reply(replyText);
 
     } catch (error) {
-        console.error('Error in movie command:', error);
-        await reply('❌ සමාවෙන්න, දෝෂයක් සිදුවී ඇත. නැවත උත්සාහ කරන්න.');
+        console.error('SinhalaSub Movie Error:', error);
+        await reply('❌ සමාවෙන්න, දෝෂයක් සිදු විය.');
     }
 });
