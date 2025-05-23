@@ -1,38 +1,22 @@
-const { cmd } = require('../command');
-const axios = require('axios');
-const config = require('../config');
+// File: plugins/movie.js const { getMovies } = require("../scraper");
 
-const API_URL = "https://movie-api.sayurami.repl.co/movies";
-const API_KEY = config.MOVIE_API_KEY;
+module.exports = { pattern: "movie", alias: ["film", "movies"], desc: "Get SinhalaSub.lk movies", category: "media", react: "\uD83C\uDFAC", use: '.movie <search term>', filename: __filename,
 
-cmd({
-    pattern: "movie",
-    alias: ["moviedl", "films"],
-    react: '🎬',
-    category: "download",
-    desc: "Search Sinhala sub movies",
-    filename: __filename
-}, async (robin, m, mek, { from, q, reply }) => {
-    try {
-        if (!q || q.trim() === '') return await reply('❌ Please provide a movie name! (e.g., Theri)');
+function: async ( sock, m, { args, q, from, reply } ) => { if (!q) return reply("Please provide a movie name. Eg: .movie John Wick");
 
-        const searchUrl = `${API_URL}?q=${encodeURIComponent(q)}&api_key=${API_KEY}`;
-        const res = await axios.get(searchUrl);
+const movies = await getMovies();
+const filtered = movies.filter(movie =>
+  movie.title.toLowerCase().includes(q.toLowerCase())
+);
 
-        if (!res.data || res.data.length === 0) {
-            return await reply(`❌ No Sinhala movie found for: *${q}*`);
-        }
+if (filtered.length === 0) return reply("No results found.");
 
-        const movie = res.data[0]; // First movie result
-        let caption = `🎬 *${movie.title}*\n\n🗂 Category: ${movie.category}\n📅 Year: ${movie.year}\n\n🔗 Link: ${movie.link}`;
-
-        await robin.sendMessage(from, {
-            text: caption,
-            quoted: mek
-        });
-
-    } catch (err) {
-        console.error("Movie command error:", err.message);
-        await reply('❌ Error fetching movie data. Check API or try again later.');
-    }
+let text = "*Found Movies:*\n\n";
+filtered.forEach((movie, i) => {
+  text += `${i + 1}. *${movie.title}*\nQuality: ${movie.quality || "Unknown"}\nLink: ${movie.link}\n\n`;
 });
+
+return reply(text.trim());
+
+}, };
+
