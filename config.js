@@ -14,7 +14,7 @@ module.exports = {
   AUTO_VOICE: process.env.AUTO_VOICE || "true",
   AUTO_STICKER: process.env.AUTO_STICKER || "true",
   AUTO_REPLY: process.env.AUTO_REPLY || "true",
-  MOVIE_API_KEY: process.env.MOVIE_API_KEY || "d95f8f85f76de495cd4dd25cde7eb200",
+  MOVIE_API_KEY: process.env.MOVIE_API_KEY || "155e5371b80b0805c0fb7af6e6b33467",
   MOVIE_API_URL: process.env.MOVIE_API_URL || "https://movie-api.sayurami.repl.co/movies",
   GEMINI_API_KEY: process.env.GEMINI_API_KEY || "AIzaSyA0NiCkktrT973oiXlmXBOJUXnlkvbXiA0",
 
