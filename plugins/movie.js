@@ -1,42 +1,37 @@
 const { cmd } = require('../command');
-const axios = require('axios');
+const { fetchJson } = require('../lib/functions');
 const config = require('../config');
 
 const API_KEY = config.MOVIE_API_KEY;
-const API_URL = "https://your-api-url.com/sinhala-movies/search"; // Replace with real API URL
 
 cmd({
-    pattern: "movie",
-    alias: ["films", "moviedl"],
-    react: '🎬',
-    category: "search",
-    desc: "Search a Sinhala movie",
-    filename: __filename
-}, async (robin, m, mek, { q, reply }) => {
-    if (!q) return reply("❌ Please provide a movie title (e.g., *Deadpool*)");
+  pattern: "movie",
+  alias: ["moviedl", "films"],
+  react: "🎬",
+  category: "download",
+  desc: "Search Sinhala movies from Sayurami API",
+  filename: __filename
+}, async (robin, m, mek, { from, q, reply }) => {
+  try {
+    if (!q) return await reply('❌ Please provide a movie name!');
 
-    try {
-        const { data } = await axios.get(`${API_URL}?q=${encodeURIComponent(q)}`, {
-            headers: { 'x-api-key': API_KEY }
-        });
+    const url = `https://movieapi.sayurami.repl.co/api/v1/movies?title=${encodeURIComponent(q)}&apikey=${API_KEY}`;
+    const res = await fetchJson(url);
 
-        if (!Array.isArray(data) || data.length === 0) {
-            return reply(`❌ No Sinhala movie found for: *${q}*`);
-        }
-
-        const movie = data[0]; // Only take first match
-
-        let msg = `🎬 *${movie.title}*\n`;
-        msg += `📽️ *Quality:* ${movie.quality || 'Unknown'}\n`;
-        msg += `🔗 *Watch/Download:* ${movie.link}`;
-
-        await robin.sendMessage(m.chat, {
-            image: { url: movie.image },
-            caption: msg
-        }, { quoted: mek });
-
-    } catch (err) {
-        console.error("Movie error:", err);
-        reply("❌ Error fetching movie. Check server or API key.");
+    if (!res || !res.movie || res.movie.length === 0) {
+      return await reply(`❌ No Sinhala movie found for: *${q}*`);
     }
+
+    const movie = res.movie[0]; // First result
+
+    let message = `🎬 *${movie.title}*\n`;
+    message += `📅 Year: ${movie.year}\n`;
+    message += `📁 Size: ${movie.size}\n`;
+    message += `🔗 Download: ${movie.download_link}`;
+
+    await reply(message);
+  } catch (err) {
+    console.log(err);
+    await reply('❌ Something went wrong while fetching the movie.');
+  }
 });
