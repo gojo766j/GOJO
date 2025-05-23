@@ -1,34 +1,28 @@
 const axios = require("axios");
 const cheerio = require("cheerio");
 
-async function getAllMovies() {
-  let page = 1;
-  const movies = [];
+async function getMovieByName(movieName) {
+  const baseUrl = "https://sinhalasub.lk";
+  const searchUrl = `${baseUrl}/?s=${encodeURIComponent(movieName)}`;
 
-  while (true) {
-    const url = `https://sinhalasub.lk/page/${page}/`;
-    try {
-      const res = await axios.get(url);
-      const $ = cheerio.load(res.data);
+  try {
+    const res = await axios.get(searchUrl);
+    const $ = cheerio.load(res.data);
 
-      const posts = $(".post");
-      if (posts.length === 0) break;
+    const results = [];
+    $(".post").each((i, el) => {
+      const title = $(el).find(".post-title").text().trim();
+      const link = $(el).find("a").attr("href");
+      if (title.toLowerCase().includes(movieName.toLowerCase())) {
+        results.push({ title, link });
+      }
+    });
 
-      posts.each((i, el) => {
-        const title = $(el).find(".post-title").text().trim();
-        const link = $(el).find("a").attr("href");
-        if (title && link) {
-          movies.push({ title, link });
-        }
-      });
-
-      page++;
-    } catch (error) {
-      console.error("Error fetching page:", error.message);
-      break;
-    }
+    return results;
+  } catch (error) {
+    console.error("Error fetching movie:", error.message);
+    return [];
   }
-  return movies;
 }
 
-module.exports = { getAllMovies };
+module.exports = { getMovieByName };
