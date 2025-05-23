@@ -36,11 +36,11 @@ def handle_message(message, chat_id):
         send_whatsapp_message(chat_id, "ඔබට 'movies' කියලා ටයිප් කරන්න පුළුවන්.")
 
 def send_whatsapp_message(chat_id, text):
-    # මෙහෙ ඔබේ WhatsApp API එකට call එකක් දාන්න
+    # මෙතන ඔයාගේ WhatsApp API call එකට වෙනස් කරන්න
     print(f"To {chat_id}: {text}")
 
-# උදාහරණයක් - testing purpose එකට
+# Testing purpose එකට
 if __name__ == "__main__":
-    test_chat_id = "12345"
+    test_chat_id = "123456"
     test_message = "movies"
     handle_message(test_message, test_chat_id)
