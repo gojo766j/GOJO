@@ -2,6 +2,7 @@ const axios = require('axios');
 const cheerio = require('cheerio');
 const { cmd } = require('../command');
 
+// SinhalaSub.lk වෙතින් චිත්‍රපට ලබාගන්නා function එක
 async function getMovieByName(name) {
     try {
         const searchUrl = `https://sinhalasub.lk/?s=${encodeURIComponent(name)}`;
@@ -10,7 +11,8 @@ async function getMovieByName(name) {
 
         const movies = [];
 
-        $('.jeg_postblock').each((i, elem) => {
+        // නව HTML ව්‍යුහය සඳහා සකසා ඇත
+        $('.jeg_post').each((i, elem) => {
             const title = $(elem).find('.jeg_post_title a').text().trim();
             const link = $(elem).find('.jeg_post_title a').attr('href');
 
@@ -26,6 +28,7 @@ async function getMovieByName(name) {
     }
 }
 
+// බොට් විධානය register කිරීම
 cmd({
     pattern: "movie",
     alias: ["moviedl", "films"],
