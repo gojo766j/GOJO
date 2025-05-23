@@ -18,7 +18,6 @@ cmd({
             return await reply(`❌ *${q}* සඳහා චිත්‍රපට සොයාගත නොහැකි විය.`);
         }
 
-        // Response message (up to 5 results)
         const replyText = movies.slice(0, 5).map(m => `🎬 ${m.title}\n🔗 ${m.link}`).join('\n\n');
 
         await reply(replyText);
