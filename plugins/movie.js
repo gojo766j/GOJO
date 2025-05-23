@@ -2,46 +2,41 @@ const { cmd } = require('../command');
 const axios = require('axios');
 const config = require('../config');
 
+const API_KEY = config.MOVIE_API_KEY;
+const API_URL = "https://your-api-url.com/sinhala-movies/search"; // Replace with real API URL
+
 cmd({
-  pattern: 'movie',
-  alias: ['moviedl', 'films'],
-  react: '🎬',
-  category: 'download',
-  desc: 'Search Sinhala movies from Movie-api',
-  filename: __filename
-}, async (robin, m, mek, { from, q, reply }) => {
-  try {
-    if (!q || q.trim() === '') {
-      return await reply('❌ Please provide a movie name! (e.g., .movie deadpool)');
+    pattern: "movie",
+    alias: ["films", "moviedl"],
+    react: '🎬',
+    category: "search",
+    desc: "Search a Sinhala movie",
+    filename: __filename
+}, async (robin, m, mek, { q, reply }) => {
+    if (!q) return reply("❌ Please provide a movie title (e.g., *Deadpool*)");
+
+    try {
+        const { data } = await axios.get(`${API_URL}?q=${encodeURIComponent(q)}`, {
+            headers: { 'x-api-key': API_KEY }
+        });
+
+        if (!Array.isArray(data) || data.length === 0) {
+            return reply(`❌ No Sinhala movie found for: *${q}*`);
+        }
+
+        const movie = data[0]; // Only take first match
+
+        let msg = `🎬 *${movie.title}*\n`;
+        msg += `📽️ *Quality:* ${movie.quality || 'Unknown'}\n`;
+        msg += `🔗 *Watch/Download:* ${movie.link}`;
+
+        await robin.sendMessage(m.chat, {
+            image: { url: movie.image },
+            caption: msg
+        }, { quoted: mek });
+
+    } catch (err) {
+        console.error("Movie error:", err);
+        reply("❌ Error fetching movie. Check server or API key.");
     }
-
-    // API URL එක - ඔයාගේ Movie-api server එකට 맞춰ලා දාන්න
-    const apiUrl = `http://localhost:3000/sinhala-movies/search?q=${encodeURIComponent(q.trim())}`;
-
-    // API key තියෙනවා නම් headers එකට එක් කරන්න, නැත්තම් skip කරන්න
-    const headers = {};
-    if (config.MOVIE_API_KEY) {
-      headers['x-api-key'] = config.MOVIE_API_KEY;
-    }
-
-    const response = await axios.get(apiUrl, { headers });
-
-    if (!response.data || !Array.isArray(response.data) || response.data.length === 0) {
-      return await reply(`❌ No results found for: *${q}*`);
-    }
-
-    // Result එකේ පළවෙනි movie එක තෝරන්න
-    const movie = response.data[0];
-
-    // Movie info format කරන්න (ඔයාට ඕනම් වෙනස් කරන්න පුළුවන්)
-    let msg = `🎬 *${movie.title}*\n`;
-    if (movie.quality) msg += `Quality: ${movie.quality}\n`;
-    msg += `Link: ${movie.link}`;
-
-    await reply(msg);
-
-  } catch (error) {
-    console.error('Movie command error:', error.message);
-    await reply('❌ Error fetching movie data. Please try again later.');
-  }
 });
