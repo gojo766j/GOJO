@@ -22,6 +22,7 @@ const {
 } = require("./lib/functions");
 const fs = require("fs");
 const P = require("pino");
+const { getMovies } = require('./scraper');
 const config = require("./config");
 const qrcode = require("qrcode-terminal");
 const util = require("util");
