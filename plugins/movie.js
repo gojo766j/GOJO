@@ -1,83 +1,48 @@
-const { cmd } = require('../command');
-const { fetchJson } = require('../lib/functions');
-const axios = require('axios');
-const fs = require('fs-extra');
-const path = require('path');
-const config = require('../config');
+const { cmd } = require('../command'); const { fetchJson } = require('../lib/functions'); const axios = require('axios'); const fs = require('fs-extra'); const path = require('path');
 
-const API_URL = "https://api.skymansion.site/movies-dl/search";
-const DOWNLOAD_URL = "https://api.skymansion.site/movies-dl/download";
-const API_KEY = config.MOVIE_API_KEY;
+cmd({ pattern: "movie", category: "download", react: '🎬', desc: "Download movie and Sinhala subtitles from dark-yasiya-sinhalasub.lk", filename: __filename }, async (robin, m, mek, { from, q, reply }) => { if (!q) return reply("❌ Please provide a movie name (e.g., .movie Deadpool)");
 
-cmd({
-    pattern: "movie",
-    alias: ["moviedl", "films"],
-    react: '🎬',
-    category: "download",
-    desc: "Search and download movies from PixelDrain",
-    filename: __filename
-}, async (robin, m, mek, { from, q, reply }) => {
-    try {
-        if (!q || q.trim() === '') return await reply('❌ Please provide a movie name! (e.g., Deadpool)');
+try { // Call your own API that uses dark-yasiya-sinhalasub.lk scraper const apiUrl = https://your-node-api.com/movie-info?q=${encodeURIComponent(q)}; const res = await fetchJson(apiUrl);
 
-        // Fetch movie search results
-        const searchUrl = `${API_URL}?q=${encodeURIComponent(q)}&api_key=${API_KEY}`;
-        let response = await fetchJson(searchUrl);
+if (!res || !res.video_link || !res.subtitle_link) {
+  return reply("❌ Movie or subtitles not found.");
+}
 
-        if (!response || !response.SearchResult || !response.SearchResult.result.length) {
-            return await reply(`❌ No results found for: *${q}*`);
-        }
+// ==== Download Movie File ====
+const videoPath = path.join(__dirname, `${q}-movie.mp4`);
+const videoWriter = fs.createWriteStream(videoPath);
+const videoResp = await axios({ url: res.video_link, method: 'GET', responseType: 'stream' });
 
-        const selectedMovie = response.SearchResult.result[0]; // Select first result
-        const detailsUrl = `${DOWNLOAD_URL}/?id=${selectedMovie.id}&api_key=${API_KEY}`;
-        let detailsResponse = await fetchJson(detailsUrl);
+videoResp.data.pipe(videoWriter);
 
-        if (!detailsResponse || !detailsResponse.downloadLinks || !detailsResponse.downloadLinks.result.links.driveLinks.length) {
-            return await reply('❌ No PixelDrain download links found.');
-        }
-
-        // Select the 720p PixelDrain link
-        const pixelDrainLinks = detailsResponse.downloadLinks.result.links.driveLinks;
-        const selectedDownload = pixelDrainLinks.find(link => link.quality === "SD 480p");
-        
-        if (!selectedDownload || !selectedDownload.link.startsWith('http')) {
-            return await reply('❌ No valid 480p PixelDrain link available.');
-        }
-
-        // Convert to direct download link
-        const fileId = selectedDownload.link.split('/').pop();
-        const directDownloadLink = `https://pixeldrain.com/api/file/${fileId}?download`;
-        
-        
-        // Download movie
-        const filePath = path.join(__dirname, `${selectedMovie.title}-480p.mp4`);
-        const writer = fs.createWriteStream(filePath);
-        
-        const { data } = await axios({
-            url: directDownloadLink,
-            method: 'GET',
-            responseType: 'stream'
-        });
-
-        data.pipe(writer);
-
-        writer.on('finish', async () => {
-            await robin.sendMessage(from, {
-                document: fs.readFileSync(filePath),
-                mimetype: 'video/mp4',
-                fileName: `${selectedMovie.title}-480p.mp4`,
-                caption: `🎬 *${selectedMovie.title}*\n📌 Quality: 480p\n✅ *Download Complete!*`,
-                quoted: mek 
-            });
-            fs.unlinkSync(filePath);
-        });
-
-        writer.on('error', async (err) => {
-            console.error('Download Error:', err);
-            await reply('❌ Failed to download movie. Please try again.');
-        });
-    } catch (error) {
-        console.error('Error in movie command:', error);
-        await reply('❌ Sorry, something went wrong. Please try again later.');
-    }
+videoWriter.on('finish', async () => {
+  await robin.sendMessage(from, {
+    document: fs.readFileSync(videoPath),
+    mimetype: 'video/mp4',
+    fileName: `${q}.mp4`,
+    caption: `🎬 *${q}* Movie File`,
+    quoted: mek
+  });
+  fs.unlinkSync(videoPath);
 });
+
+// ==== Download Subtitle File ====
+const subPath = path.join(__dirname, `${q}-subs.zip`);
+const subWriter = fs.createWriteStream(subPath);
+const subResp = await axios({ url: res.subtitle_link, method: 'GET', responseType: 'stream' });
+
+subResp.data.pipe(subWriter);
+
+subWriter.on('finish', async () => {
+  await robin.sendMessage(from, {
+    document: fs.readFileSync(subPath),
+    mimetype: 'application/zip',
+    fileName: `${q}-subs.zip`,
+    caption: `📄 Sinhala Subtitle for *${q}*`,
+    quoted: mek
+  });
+  fs.unlinkSync(subPath);
+});
+
+} catch (err) { console.error(err); await reply("❌ Error occurred while fetching the movie or subtitle."); } });
+
