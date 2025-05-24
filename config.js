@@ -14,7 +14,6 @@ module.exports = {
   AUTO_VOICE: process.env.AUTO_VOICE || "true",
   AUTO_STICKER: process.env.AUTO_STICKER || "true",
   AUTO_REPLY: process.env.AUTO_REPLY || "true",
-  MOVIE_API_KEY: process.env.MOVIE_API_KEY || "155e5371b80b0805c0fb7af6e6b33467",
   GEMINI_API_KEY: process.env.GEMINI_API_KEY || "AIzaSyA0NiCkktrT973oiXlmXBOJUXnlkvbXiA0",
 
 };
