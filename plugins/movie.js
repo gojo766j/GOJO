@@ -4,7 +4,7 @@ const fs = require('fs-extra');
 const path = require('path');
 const { searchSinhalaMovie } = require('dark-yasiya-sinhalasub.lk');
 
-const waitingForQuality = {}; // User-wise pending movie info
+const waitingForQuality = {};
 
 cmd({
   pattern: "movie",
@@ -24,13 +24,13 @@ cmd({
       return await reply(`❌ No download links found for: *${q.trim()}*`);
     }
 
-    waitingForQuality[from] = { movieData, mek };
+    waitingForQuality[mek.key.id] = { movieData, mek };
 
     let msg = `🎬 *${movieData.title}* - Available Qualities:\n`;
     movieData.qualities.forEach((quality, idx) => {
       msg += `\n${idx + 1}. ${quality.quality} (${quality.size || 'Unknown size'})`;
     });
-    msg += `\n\nReply with the number to select quality.`;
+    msg += `\n\n👉 *Reply to this message* with the number to select quality.`;
 
     await reply(msg);
   } catch (error) {
@@ -40,30 +40,33 @@ cmd({
 });
 
 cmd({
-  pattern: /^[1-9]\d*$/, // number pattern
-  fromMe: true,
-  desc: "Handle movie quality selection",
+  on: 'text',
   filename: __filename
-}, async (robin, m, mek, { from, q, reply }) => {
+}, async (robin, m, mek, { from, reply, body }) => {
   try {
-    if (!waitingForQuality[from]) return; // No pending movie for user
+    const isReply = mek?.message?.extendedTextMessage?.contextInfo?.stanzaId;
+    const replyId = mek?.message?.extendedTextMessage?.contextInfo?.stanzaId;
 
-    const choice = parseInt(q);
-    const { movieData, mek: originalMek } = waitingForQuality[from];
+    if (!isReply || !waitingForQuality[replyId]) return;
+
+    const selected = parseInt(body.trim());
+    if (isNaN(selected)) return;
+
+    const { movieData, mek: originalMek } = waitingForQuality[replyId];
     const qualities = movieData.qualities;
 
-    if (choice < 1 || choice > qualities.length) {
-      return await reply('❌ Invalid selection. Please reply with a valid number.');
+    if (selected < 1 || selected > qualities.length) {
+      return await reply('❌ Invalid number. Please select a valid quality number.');
     }
 
-    const selectedQuality = qualities[choice - 1];
+    const selectedQuality = qualities[selected - 1];
     const downloadUrl = selectedQuality.link;
 
     const safeTitle = movieData.title.replace(/[^\w\s]/gi, '');
     const fileName = `${safeTitle}-${selectedQuality.quality}.mp4`;
     const filePath = path.join(__dirname, fileName);
 
-    await reply(`⏳ Downloading *${movieData.title}* in *${selectedQuality.quality}* quality. Please wait...`);
+    await reply(`⏳ Downloading *${movieData.title}* in *${selectedQuality.quality}*...`);
 
     const writer = fs.createWriteStream(filePath);
     const response = await axios({
@@ -84,18 +87,17 @@ cmd({
         quoted: originalMek
       });
       fs.unlinkSync(filePath);
-      delete waitingForQuality[from];
+      delete waitingForQuality[replyId];
     });
 
     writer.on('error', async (err) => {
-      console.error('File write error:', err);
+      console.error('Download Error:', err);
       await reply('❌ Failed to download or send the movie.');
-      delete waitingForQuality[from];
+      delete waitingForQuality[replyId];
     });
 
   } catch (error) {
-    console.error('Download error:', error);
-    await reply('❌ Something went wrong while downloading the movie.');
-    delete waitingForQuality[from];
+    console.error('Reply handler error:', error);
+    await reply('❌ Error while processing your reply.');
   }
 });
