@@ -49,12 +49,7 @@ const express = require("express");
 const app = express();
 const port = process.env.PORT || 8000;
 
-//=============================================
-
 async function connectToWA() {
-  
-  //===========================
-
   console.log("Connecting Gojo max");
   const { state, saveCreds } = await useMultiFileAuthState(
     __dirname + "/auth_info_baileys/"
@@ -70,11 +65,11 @@ async function connectToWA() {
     version,
   });
 
-  robin.ev.on("connection.update", (update) => {
+  robin.ev.on("connection.update", async (update) => {
     const { connection, lastDisconnect } = update;
     if (connection === "close") {
       if (
-        lastDisconnect.error.output.statusCode !== DisconnectReason.loggedOut
+        lastDisconnect?.error?.output?.statusCode !== DisconnectReason.loggedOut
       ) {
         connectToWA();
       }
@@ -89,23 +84,25 @@ async function connectToWA() {
       console.log("Gojo max installed successful ✅");
       console.log("Gojo max connected to whatsapp ✅");
 
-      let up = `Gojo max connected successful ✅`;
-      let up1 = `Hello Gojo, I made bot successful`;
+      const up = `Gojo max connected successful ✅`;
+      const up1 = `Hello Gojo, I made bot successful`;
+
+      const imageBuffer = await getBuffer(
+        "https://raw.githubusercontent.com/gojo766j/GOJO-HELPER/refs/heads/main/file_00000000d0dc61f597f450261ecfe33f%20(1).png"
+      );
 
       robin.sendMessage(ownerNumber + "@s.whatsapp.net", {
-        image: {
-          url: `https://raw.githubusercontent.com/gojo766j/GOJO-HELPER/refs/heads/main/file_00000000d0dc61f597f450261ecfe33f%20(1).png`,
-        },
+        image: imageBuffer,
         caption: up,
       });
+
       robin.sendMessage("94743826406@s.whatsapp.net", {
-        image: {
-          url: `https://raw.githubusercontent.com/gojo766j/GOJO-HELPER/refs/heads/main/file_00000000d0dc61f597f450261ecfe33f%20(1).png`,
-        },
+        image: imageBuffer,
         caption: up1,
       });
     }
   });
+
   robin.ev.on("creds.update", saveCreds);
   robin.ev.on("messages.upsert", async (mek) => {
     mek = mek.messages[0];
@@ -114,10 +111,8 @@ async function connectToWA() {
       getContentType(mek.message) === "ephemeralMessage"
         ? mek.message.ephemeralMessage.message
         : mek.message;
-    if (
-      mek.key &&
-      mek.key.remoteJid === "status@broadcast") return  
-    
+    if (mek.key && mek.key.remoteJid === "status@broadcast") return;
+
     const m = sms(robin, mek);
     const type = getContentType(mek.message);
     const content = JSON.stringify(mek.message);
@@ -228,7 +223,7 @@ async function connectToWA() {
       }
     };
 
-    //work type
+    // Work type control
     if (!isOwner && config.MODE === "private") return;
     if (!isOwner && isGroup && config.MODE === "inbox") return;
     if (!isOwner && !isGroup && config.MODE === "groups") return;
@@ -275,6 +270,7 @@ async function connectToWA() {
         }
       }
     }
+
     events.commands.map(async (command) => {
       if (body && command.on === "body") {
         command.function(robin, mek, m, {
@@ -302,98 +298,18 @@ async function connectToWA() {
           isAdmins,
           reply,
         });
-      } else if (mek.q && command.on === "text") {
-        command.function(robin, mek, m, {
-          from,
-          l,
-          quoted,
-          body,
-          isCmd,
-          command,
-          args,
-          q,
-          isGroup,
-          sender,
-          senderNumber,
-          botNumber2,
-          botNumber,
-          pushname,
-          isMe,
-          isOwner,
-          groupMetadata,
-          groupName,
-          participants,
-          groupAdmins,
-          isBotAdmins,
-          isAdmins,
-          reply,
-        });
-      } else if (
-        (command.on === "image" || command.on === "photo") &&
-        mek.type === "imageMessage"
-      ) {
-        command.function(robin, mek, m, {
-          from,
-          l,
-          quoted,
-          body,
-          isCmd,
-          command,
-          args,
-          q,
-          isGroup,
-          sender,
-          senderNumber,
-          botNumber2,
-          botNumber,
-          pushname,
-          isMe,
-          isOwner,
-          groupMetadata,
-          groupName,
-          participants,
-          groupAdmins,
-          isBotAdmins,
-          isAdmins,
-          reply,
-        });
-      } else if (command.on === "sticker" && mek.type === "stickerMessage") {
-        command.function(robin, mek, m, {
-          from,
-          l,
-          quoted,
-          body,
-          isCmd,
-          command,
-          args,
-          q,
-          isGroup,
-          sender,
-          senderNumber,
-          botNumber2,
-          botNumber,
-          pushname,
-          isMe,
-          isOwner,
-          groupMetadata,
-          groupName,
-          participants,
-          groupAdmins,
-          isBotAdmins,
-          isAdmins,
-          reply,
-        });
       }
     });
-    //============================================================================
   });
 }
+
 app.get("/", (req, res) => {
   res.send("hey, Gojo max started✅");
 });
 app.listen(port, () =>
   console.log(`Server listening on port http://localhost:${port}`)
 );
+
 setTimeout(() => {
   connectToWA();
 }, 4000);
